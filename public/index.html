@@ -4,17 +4,41 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Ray Arayilakath</title>
-    <link rel="stylesheet" href="./style.css" />
+    <style>
+      body {
+        font-family: Verdana, sans-serif;
+        max-width: 40em;
+        font-size: 12px;
+      }
+
+      h1 {
+        font-size: 16px;
+      }
+
+      .portrait {
+        float: right;
+        width: 144px;
+        max-width: 40%;
+        height: auto;
+        margin: 0 0 12px 16px;
+      }
+    </style>
   </head>
   <body>
     <main>
       <p>
         <img
           class="portrait"
-          src="./portrait.jpg"
+          src="./assets/portrait-288.d35b966b30eb.webp"
+          srcset="
+            ./assets/portrait-288.d35b966b30eb.webp 288w,
+            ./assets/portrait-432.ad91648d928c.webp 432w
+          "
+          sizes="144px"
+          fetchpriority="high"
           alt="Black-and-white portrait"
-          width="480"
-          height="640"
+          width="288"
+          height="360"
         />
         I'm Ray. I'm a software engineer with several years of experience in data, growth, and
         infrastructure. You might know me as
