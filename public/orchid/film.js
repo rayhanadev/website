@@ -8,7 +8,8 @@
   const trackingFps = 12;
   const [hdSource, source] = video.querySelectorAll('source');
   let loading;
-  let useImageLoop = false;
+  let imageFirst = matchMedia('(pointer: coarse)').matches;
+  let videoUnavailable = false;
   let loopImage, loopTimer;
   let playAttempt = 0;
   let lastTrackingFrame = -1;
@@ -69,6 +70,7 @@
     if (!loopImage) return;
     clearTimeout(loopTimer);
     loopImage.onload = null;
+    loopImage.onerror = null;
     loopImage.remove();
     loopImage.removeAttribute('src');
     loopImage = null;
@@ -83,7 +85,7 @@
     image.onload = () => {
       if (loopImage !== image) return;
       video.after(image);
-      // The image contains the same eight seconds as the film, sampled at 12 fps.
+      // Both image loops follow the same eight-second timeline as the film.
       const start = performance.now();
       function tick() {
         const seconds = (performance.now() - start) / 1000;
@@ -93,7 +95,16 @@
       }
       tick();
     };
-    image.src = 'orchid/wind-loop.avif';
+    image.onerror = () => {
+      if (loopImage !== image) return;
+      stopImageLoop();
+      if (imageFirst) {
+        imageFirst = false;
+        playback();
+      }
+    };
+    image.src = imageFirst && !navigator.connection?.saveData
+      ? 'orchid/wind-mobile.avif' : 'orchid/wind-loop.avif';
   }
 
   function setSources() {
@@ -149,7 +160,7 @@
       }
       return;
     }
-    if (useImageLoop) {
+    if (imageFirst || videoUnavailable) {
       startImageLoop();
       return;
     }
@@ -161,7 +172,7 @@
       requestFrame();
     }, error => {
       if (attempt === playAttempt && !manual && (error.name === 'NotAllowedError' || error.name === 'NotSupportedError')) {
-        useImageLoop = true;
+        videoUnavailable = true;
         startImageLoop();
       }
     });
