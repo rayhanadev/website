@@ -43,24 +43,15 @@
   color: #9a9a94;
   pointer-events: none;
 }
-.type-gauge::after, .link-size::after {
+.type-gauge::after {
   content: attr(data-value);
   font: 400 10px/1 "SFMono-Regular", Consolas, monospace;
   letter-spacing: 0;
   white-space: nowrap;
   color: #595a55;
-}
-.type-gauge::after {
   position: absolute;
   left: 0;
   bottom: calc(100% + 13px);
-}
-.link-size {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  display: flex;
-  pointer-events: none;
 }
 .callout {
   position: absolute;
@@ -151,8 +142,7 @@
     --footer-baseline: max(clamp(21px, 4.1svh, 38px), calc(env(safe-area-inset-bottom) + 17px));
   }
   .type-gauge { left: -.135em; width: 3px; }
-  .type-gauge::after { bottom: calc(100% + 6px); }
-  .type-gauge::after, .link-size::after { font-size: 9px; }
+  .type-gauge::after { bottom: calc(100% + 6px); font-size: 9px; }
   .callout { bottom: var(--footer-baseline); }
   .callout .verb { font-size: clamp(10px, 2.3vw, 13px); margin-bottom: .22em; }
   .callout a {
@@ -160,7 +150,6 @@
     font-size: var(--footer-type);
     text-box: trim-end text alphabetic;
   }
-  .link-size { top: calc(100% + 6px); }
   .ring {
     --ring-hover: #5d7bff;
     left: auto;

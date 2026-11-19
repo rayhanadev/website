@@ -63,6 +63,11 @@
       position: absolute; inset: 0;
       pointer-events: none;
     }
+    .art-motion {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
     .plate-origin {
       position: absolute; left: var(--photo-x); top: var(--photo-y);
       width: var(--photo-w); aspect-ratio: 2 / 3;
@@ -129,7 +134,7 @@
     }
     a:focus-visible { color: var(--blue); outline: 1px solid currentColor; outline-offset: .2em; }
   </style>
-  <link rel="stylesheet" href="orchid/type.css?v=186e0477">
+  <link rel="stylesheet" href="orchid/type.css?v=c33dd924">
 </head>
 <body>
   <main>
@@ -138,7 +143,6 @@
     </header>
     <div class="callout">
       <p><span class="verb">Building</span> <a href="https://the.afterhours.foundation" target="_blank" rel="noopener">Afterhours<i class="type-baseline" aria-hidden="true"></i></a></p>
-      <i class="link-size" aria-hidden="true"></i>
     </div>
     <nav class="ring" aria-label="Purdue Hackers webring">
       <a href="https://ring.purduehackers.com/prev?host=rayhanadev.com" aria-label="Previous site in the Purdue Hackers webring">
@@ -154,18 +158,18 @@
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h14m-6-6 6 6-6 6"/></svg>
       </a>
     </nav>
-    <div class="art-motion" aria-hidden="true">
+    <div class="art-motion" inert aria-hidden="true">
       <figure class="specimen">
         <div class="imprint">
           <div class="plate-origin">
-            <img class="specimen-print" alt="" width="1024" height="1536" src="orchid/wind-still.webp"
+            <img class="specimen-print" alt="" draggable="false" width="1024" height="1536" src="orchid/wind-still.webp"
               srcset="orchid/wind-still.webp 1024w, orchid/wind-still-hd.webp 1536w"
               sizes="min(clamp(67svh, 127svh - 24vw, 88svh), 91vw, max(55vw, 51svh - 7vw, 36svh + 13vw))">
             <video class="specimen-film" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true">
               <source data-src="orchid/wind-film-hd.mp4" type="video/mp4">
               <source data-src="orchid/wind-film.mp4" type="video/mp4">
             </video>
-            <img class="stem-extension" alt="" width="215" height="1560" src="orchid/stem-extension.webp">
+            <img class="stem-extension" alt="" draggable="false" width="215" height="1560" src="orchid/stem-extension.webp">
           </div>
         </div>
         <div class="reversal"></div>
@@ -177,7 +181,7 @@
   </main>
 <script src="orchid/wind-rig.js"></script>
 <script src="orchid/glyph-measure.js"></script>
-<script src="orchid/dimensions.js?v=a565cf9b"></script>
+<script src="orchid/dimensions.js?v=557ba204"></script>
 <script src="orchid/tracker.js"></script>
 <script src="orchid/film.js?v=a1ddbabb"></script>
 </body>

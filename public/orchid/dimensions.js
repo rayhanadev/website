@@ -6,14 +6,12 @@ const afterhours = sheet.querySelector('.callout a');
 const captionBaseline = afterhours.querySelector('.type-baseline');
 const family = sheet.querySelector('.family');
 const typeGauge = sheet.querySelector('.type-gauge');
-const linkSize = sheet.querySelector('.link-size');
 
 let measurementLayout;
 let measurementPhase = 0;
 
 function registerMeasurements() {
   typeGauge.dataset.value = Number(typeGauge.getBoundingClientRect().height.toFixed(1));
-  linkSize.dataset.value = Number(parseFloat(getComputedStyle(afterhours).fontSize).toFixed(1));
   const sheetBox = sheet.getBoundingClientRect();
   const registration = getComputedStyle(plate.querySelector('.plate-origin'));
   const w = sheetBox.width, h = sheetBox.height;
