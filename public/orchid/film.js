@@ -1,13 +1,6 @@
 (() => {
   const sheet = document.querySelector('main');
   const video = sheet.querySelector('.specimen-film');
-  const playButton = document.createElement('button');
-  playButton.type = 'button';
-  playButton.className = 'play-motion';
-  playButton.textContent = 'Play motion';
-  playButton.setAttribute('aria-label', 'Play orchid animation');
-  playButton.hidden = true;
-  sheet.append(playButton);
   const tracker = sheet.querySelector('.tracking');
   const registration = sheet.querySelector('.plate-origin');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -15,6 +8,8 @@
   const trackingFps = 12;
   const [hdSource, source] = video.querySelectorAll('source');
   let loading;
+  let useImageLoop = false;
+  let loopImage, loopTimer;
   let playAttempt = 0;
   let lastTrackingFrame = -1;
   let layout, presentedAt = 0, callbackId = 0, manual = false;
@@ -70,10 +65,37 @@
       });
     }
   }
-  /**
-   * Leave playback in charge of fetching the movie. A phone that blocks
-   * autoplay can keep the printed frame until its owner presses Play.
-   */
+  function stopImageLoop() {
+    if (!loopImage) return;
+    clearTimeout(loopTimer);
+    loopImage.onload = null;
+    loopImage.remove();
+    loopImage.removeAttribute('src');
+    loopImage = null;
+  }
+
+  function startImageLoop() {
+    video.classList.remove('is-ready');
+    const image = new Image();
+    image.className = 'specimen-loop';
+    image.alt = '';
+    loopImage = image;
+    image.onload = () => {
+      if (loopImage !== image) return;
+      video.after(image);
+      // The image contains the same eight seconds as the film, sampled at 12 fps.
+      const start = performance.now();
+      function tick() {
+        const seconds = (performance.now() - start) / 1000;
+        draw(seconds % cycle);
+        const frame = seconds * trackingFps;
+        loopTimer = setTimeout(tick, Math.ceil((Math.floor(frame) + 1 - frame) * 1000 / trackingFps));
+      }
+      tick();
+    };
+    image.src = 'orchid/wind-loop.avif';
+  }
+
   function setSources() {
     if (source.hasAttribute('src')) return;
     const displayPixels = registration.getBoundingClientRect().width * (window.devicePixelRatio || 1);
@@ -117,8 +139,8 @@
   function playback() {
     const attempt = ++playAttempt;
     cancelFrame();
+    stopImageLoop();
     if (manual || document.hidden || reduced.matches) {
-      playButton.hidden = true;
       video.pause();
       if (reduced.matches && !manual) {
         video.classList.remove('is-ready');
@@ -127,24 +149,26 @@
       }
       return;
     }
+    if (useImageLoop) {
+      startImageLoop();
+      return;
+    }
     setSources();
-    // Start inside the click event. Safari can withhold loadeddata until play()
-    // and a later promise callback can lose the user's activation.
-    // oxlint-disable-next-line rayhanadev/no-promise-catch -- Safari uses NotAllowedError to request a user gesture.
+    // oxlint-disable-next-line rayhanadev/no-promise-catch -- A rejected media promise selects the image version of the film.
     video.play().then(() => {
       if (attempt !== playAttempt || manual) return;
-      playButton.hidden = true;
       video.classList.add('is-ready');
       requestFrame();
     }, error => {
-      if (attempt === playAttempt && !manual && error.name === 'NotAllowedError') {
-        playButton.hidden = false;
+      if (attempt === playAttempt && !manual && (error.name === 'NotAllowedError' || error.name === 'NotSupportedError')) {
+        useImageLoop = true;
+        startImageLoop();
       }
     });
   }
   async function seek(seconds) {
     manual=true;
-    playButton.hidden=true;
+    stopImageLoop();
     cancelFrame(); video.pause();
     await loadFilm();
     video.classList.add('is-ready');
@@ -170,7 +194,6 @@
   };
   register();
   new ResizeObserver(register).observe(sheet);
-  playButton.addEventListener('click', playback);
   video.addEventListener('playing', requestFrame);
   reduced.addEventListener('change',playback);
   document.addEventListener('visibilitychange',playback);
