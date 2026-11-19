@@ -8,9 +8,10 @@
   const trackingFps = 12;
   const [hdSource, source] = video.querySelectorAll('source');
   let loading;
-  let imageFirst = matchMedia('(pointer: coarse)').matches;
+  const imageFirst = matchMedia('(pointer: coarse)').matches;
   let videoUnavailable = false;
-  let loopImage, loopTimer;
+  let frameDecoderFailed = false;
+  let loopController;
   let playAttempt = 0;
   let lastTrackingFrame = -1;
   let layout, presentedAt = 0, callbackId = 0, manual = false;
@@ -67,44 +68,66 @@
     }
   }
   function stopImageLoop() {
-    if (!loopImage) return;
-    clearTimeout(loopTimer);
-    loopImage.onload = null;
-    loopImage.onerror = null;
-    loopImage.remove();
-    loopImage.removeAttribute('src');
-    loopImage = null;
+    if (!loopController) return;
+    loopController.abort();
+    loopController = null;
+    draw(0);
   }
 
-  function startImageLoop() {
+  async function startImageLoop() {
+    const controller = new AbortController();
+    const { signal } = controller;
+    loopController = controller;
+    const canvas = document.createElement('canvas');
+    canvas.className = 'specimen-loop';
     video.classList.remove('is-ready');
-    const image = new Image();
-    image.className = 'specimen-loop';
-    image.alt = '';
-    loopImage = image;
-    image.onload = () => {
-      if (loopImage !== image) return;
-      video.after(image);
-      // Both image loops follow the same eight-second timeline as the film.
-      const start = performance.now();
-      function tick() {
-        const seconds = (performance.now() - start) / 1000;
-        draw(seconds % cycle);
-        const frame = seconds * trackingFps;
-        loopTimer = setTimeout(tick, Math.ceil((Math.floor(frame) + 1 - frame) * 1000 / trackingFps));
+    draw(0);
+    signal.addEventListener('abort', () => canvas.remove(), { once: true });
+    function present(seconds) {
+      if (!canvas.isConnected) video.after(canvas);
+      draw(seconds);
+    }
+    if (!frameDecoderFailed) {
+      // oxlint-disable-next-line rayhanadev/no-try-catch -- Switch to native playback if the browser cannot decode the indexed frames.
+      try {
+        // oxlint-disable-next-line rayhanadev/wrap-throwing-api -- The surrounding catch also handles failure to load the optional player.
+        const { playOrchidFrames } = await import('./frame-player.js');
+        if (signal.aborted) return;
+        await playOrchidFrames(canvas, {
+          compact: !imageFirst || Boolean(navigator.connection?.saveData), signal, present,
+        });
+        return;
+      } catch {
+        if (signal.aborted) return;
+        frameDecoderFailed = true;
+        if (!videoUnavailable) {
+          playback();
+          return;
+        }
       }
-      tick();
-    };
-    image.onerror = () => {
-      if (loopImage !== image) return;
-      stopImageLoop();
-      if (imageFirst) {
-        imageFirst = false;
-        playback();
-      }
-    };
-    image.src = imageFirst && !navigator.connection?.saveData
-      ? 'orchid/wind-mobile.avif' : 'orchid/wind-loop.avif';
+    }
+
+    // Older engines can decode a paused film on seek even when autoplay is disabled.
+    // Copy the decoded image and its timestamp together, just as on the WebCodecs path.
+    // oxlint-disable-next-line rayhanadev/no-try-catch -- Keep the still on screen if the native media loader also fails.
+    try { await loadFilm(); } catch { return; }
+    if (signal.aborted) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d', { alpha: false });
+    if (!ctx) return;
+    let timer;
+    function copyFrame() {
+      ctx.drawImage(video, 0, 0);
+      present(video.currentTime);
+      timer = setTimeout(() => {
+        const next = Math.round(video.currentTime * trackingFps) + 1;
+        video.currentTime = (next / trackingFps) % cycle;
+      }, 1000 / trackingFps);
+    }
+    video.addEventListener('seeked', copyFrame, { signal });
+    signal.addEventListener('abort', () => clearTimeout(timer), { once: true });
+    if (!video.seeking) copyFrame();
   }
 
   function setSources() {
@@ -160,8 +183,8 @@
       }
       return;
     }
-    if (imageFirst || videoUnavailable) {
-      startImageLoop();
+    if ((imageFirst && !frameDecoderFailed) || videoUnavailable) {
+      void startImageLoop();
       return;
     }
     setSources();
@@ -173,7 +196,7 @@
     }, error => {
       if (attempt === playAttempt && !manual && (error.name === 'NotAllowedError' || error.name === 'NotSupportedError')) {
         videoUnavailable = true;
-        startImageLoop();
+        void startImageLoop();
       }
     });
   }
