@@ -1,104 +1,159 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ray Arayilakath</title>
-    <style>
-      body {
-        font-family: Verdana, sans-serif;
-        max-width: 40em;
-        font-size: 12px;
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ray Arayilakath</title>
+  <style>
+    :root {
+      color-scheme: light;
+      color: #161616;
+      background: #fafaf8;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    * { box-sizing: border-box; }
+    body, figure, h1, p { margin: 0; }
+    main {
+      --paper: url("orchid/paper.webp");
+      --blue: #274be2;
+      /* Interpolate the stacked phone and side-by-side desktop plates.
+         On shallow screens the flower's width is also limited by the height. */
+      --stacked: 0;
+      --margin: clamp(4.3vw, calc(3vw + 1.25svh), 5.6vw);
+      --name-size: min(16svh, clamp(7.5vw, 6.65svh + .7vw, 15.45vw) + clamp(0px, 6vw - 7.4svh, 1.1vw));
+      --name-leading: clamp(0px, calc(19px - .20em), 9px);
+      --name-top: clamp(3.8svh, .63svh + 6.6vw, 6.9svh);
+      --below-name: calc(6px + max(min(22svh, 55vw), var(--name-top) + 2 * var(--name-size) + .12 * var(--photo-w) + max(18px, 4vw)));
+      --photo-gutter: clamp(12px, 3.25vw, 46px);
+      /* In a tall portrait, the cut specimen sits above the footer. */
+      --footer-type: clamp(25px, 6.2vw, 34px);
+      --footer-room: max(var(--photo-gutter), var(--margin) + 4.25 * var(--footer-type) + 14px - max(0px, 57svh - 64vw));
+      --landscape-cap: clamp(67svh, 127svh - 24vw, 88svh);
+      --specimen-size: calc(clamp(47vw, 36svh + 13vw, 86vw) + clamp(0px, 32vw - 40svh, 8vw) + clamp(0px, 15svh - 20vw, 5vw));
+      /* The film has 48 additional paper units on the right for the bud at full sway. */
+      --film-width: 1.046875;
+      --film-span: min(var(--landscape-cap), var(--specimen-size), 100vw - 2 * var(--photo-gutter), (100vw - var(--footer-room) - var(--photo-gutter)) / .78);
+      --photo-w: calc(var(--film-span) / var(--film-width));
+      --photo-x: min(100vw - var(--film-span) - var(--photo-gutter), 49vw);
+      --portrait-center: calc((100svh + var(--name-top) + 2 * var(--name-size) - clamp(68px, 10svh, 94px) - 1.47 * var(--photo-w)) / 2);
+      --photo-y: max(3.6svh, min(7svh, 13svh - 6vw), min(49svh - 42vw, var(--below-name)), var(--portrait-center) - max(0px, 67vw - 34svh));
+      height: 100vh;
+      height: 100svh;
+      overflow: hidden;
+      isolation: isolate;
+      position: relative;
+      background: #fcfcfa;
+    }
+    .identity, .callout, .ring { z-index: 1; }
+    main::after {
+      z-index: 2;
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--paper) center / 410px 410px;
+      mix-blend-mode: multiply;
+      opacity: .78;
+      pointer-events: none;
+    }
+    .art-motion, .specimen {
+      position: absolute; inset: 0;
+      pointer-events: none;
+    }
+    .plate-origin {
+      position: absolute; left: var(--photo-x); top: var(--photo-y);
+      width: var(--photo-w); aspect-ratio: 2 / 3;
+    }
+    @media (max-aspect-ratio: 6/5) {
+      .plate-origin {
+        /* One angled cut for the still and film. Reveal the longer stem as the poster widens. */
+        --stem-reveal: max(0px, 130vw - 122svh);
+        clip-path: polygon(0 0, 105% 0, 105% calc(97% + var(--stem-reveal)),
+          34% calc(97% + var(--stem-reveal)), 27% calc(99% + var(--stem-reveal)), 0 calc(99% + var(--stem-reveal)));
       }
-
-      h1 {
-        font-size: 16px;
-      }
-
-      .portrait {
-        float: right;
-        width: 144px;
-        max-width: 40%;
-        height: auto;
-        margin: 0 0 12px 16px;
-      }
-    </style>
-  </head>
-  <body>
-    <main>
-      <p>
-        <img
-          class="portrait"
-          src="./assets/portrait-288.d35b966b30eb.webp"
-          srcset="
-            ./assets/portrait-288.d35b966b30eb.webp 288w,
-            ./assets/portrait-432.ad91648d928c.webp 432w
-          "
-          sizes="144px"
-          fetchpriority="high"
-          alt="Black-and-white portrait"
-          width="288"
-          height="360"
-        />
-        I'm Ray. I'm studying Philosophy and Artificial Intelligence at Purdue University. You might
-        know me as
-        <a href="https://x.com/rayhanadev" target="_blank" rel="noopener">@rayhanadev</a>.
-      </p>
-      <p>
-        I run <a href="https://purduehackers.com" target="_blank" rel="noopener">Purdue Hackers</a>
-        and founded
-        <a href="https://the.afterhours.foundation" target="_blank" rel="noopener"
-          >The Afterhours Foundation</a
-        >, a nonprofit to back hacker activity. Through both, I want to make Purdue one of
-        the best places in the world to be a young, ambitious builder. Purdue
-        Hackers is backed by Paul Graham, Mitchell Hashimoto, and others whose work I admire.
-      </p>
-      <p>
-        I work at <a href="https://million.dev" target="_blank" rel="noopener">Million</a>,
-        where we build open-source tools to make the web faster. These include
-        <a href="https://github.com/millionco/react-doctor" target="_blank" rel="noopener"
-          >React Doctor</a
-        >,
-        <a href="https://github.com/aidenybai/react-grab" target="_blank" rel="noopener"
-          >React Grab</a
-        >, and <a href="https://react-bench.com" target="_blank" rel="noopener">React Bench</a>. We
-        also build reinforcement learning environments to train and evaluate coding agents.
-      </p>
-      <p>
-        Before that, I spent five years at
-        <a href="https://replit.com" target="_blank" rel="noopener">Replit</a>,
-        <a href="https://deel.com" target="_blank" rel="noopener">Deel</a>,
-        <a href="https://hackclub.com" target="_blank" rel="noopener">Hack Club</a>, and several
-        early-stage startups learning and working in founding data, growth, and infrastructure roles.
-        I've built teams, scaled up to hundreds of thousands of users, and broken prod more than a
-        few times.
-      </p>
-      <p>
-        I like hard problems, novel ideas, and chatting with interesting people. If you're working on
-        something neat,
-        <a href="mailto:me@rayhanadev.com">send me an email</a>.
-      </p>
-    </main>
-    <hr />
-    <footer>
-      <nav aria-label="Site navigation and profiles">
-        <p>
-          <a href="./essays.html">Essays</a> | <a href="mailto:me@rayhanadev.com">Email</a> |
-          <a href="https://github.com/rayhanadev" target="_blank" rel="noopener">GitHub</a> |
-          <a href="https://x.com/rayhanadev" target="_blank" rel="noopener">Twitter</a> |
-          <a
-            href="https://ring.purduehackers.com/prev"
-            aria-label="Previous site in the Purdue Hackers webring"
-            >&larr;</a
-          >
-          <a href="https://ring.purduehackers.com/">Purdue Hackers webring</a>
-          <a
-            href="https://ring.purduehackers.com/next"
-            aria-label="Next site in the Purdue Hackers webring"
-            >&rarr;</a
-          >
-        </p>
-      </nav>
-    </footer>
-  </body>
+    }
+    .imprint, .reversal, .toner { position: absolute; inset: 0; }
+    .imprint {
+      background: #fff;
+      mix-blend-mode: multiply;
+    }
+    .reversal {
+      background: #f8f8f8;
+      mix-blend-mode: difference;
+      clip-path: var(--ink-shape, polygon(70% 0, 100% 0, 100% 100%, 70% 100%));
+    }
+    .toner {
+      clip-path: var(--steps, polygon(70% 0, 100% 0, 100% 100%, 70% 100%));
+      background: var(--paper) center / 235px 235px;
+      filter: invert(1) brightness(1.9);
+      mix-blend-mode: screen;
+      opacity: .78;
+    }
+    .drafting {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none; mix-blend-mode: difference;
+    }
+    h1 > span { display: block; width: max-content; }
+    a {
+      color: inherit; text-decoration-thickness: 1px; text-underline-offset: .16em;
+      position: relative;
+    }
+    a::after { content: ""; position: absolute; inset: -13px -2px; }
+    @media (hover: hover) and (pointer: fine) {
+      a:hover { color: var(--blue); }
+    }
+    a:focus-visible { color: var(--blue); outline: 1px solid currentColor; outline-offset: .2em; }
+  </style>
+  <link rel="stylesheet" href="orchid/type.css">
+</head>
+<body>
+  <main>
+    <header class="identity">
+      <h1><span class="given"><span class="glyph-origin type-baseline" aria-hidden="true"><i class="type-gauge"></i></span>Ray</span> <span class="family">Arayilakath<i class="glyph-origin type-baseline" aria-hidden="true"><i class="a-width"></i></i></span></h1>
+    </header>
+    <div class="callout">
+      <p><span class="verb">Building</span> <a href="https://the.afterhours.foundation" target="_blank" rel="noopener">Afterhours<i class="type-baseline" aria-hidden="true"></i></a></p>
+      <i class="link-size" aria-hidden="true"></i>
+    </div>
+    <nav class="ring" aria-label="Purdue Hackers webring">
+      <a href="https://ring.purduehackers.com/prev?host=rayhanadev.com" aria-label="Previous site in the Purdue Hackers webring">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M17 10H3m6-6-6 6 6 6"/></svg>
+      </a>
+      <a href="https://ring.purduehackers.com/" aria-label="Purdue Hackers webring directory">
+        <svg class="ring-logo" viewBox="0 0 31 31" width="21" height="21" aria-hidden="true">
+          <rect y="20.6667" width="10.3333" height="10.3333"/>
+          <path d="M20.6667 10.3333V0H10.3333V10.3333V20.6667H20.6667V31H31V20.6667V10.3333H20.6667Z"/>
+        </svg>
+      </a>
+      <a href="https://ring.purduehackers.com/next?host=rayhanadev.com" aria-label="Next site in the Purdue Hackers webring">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10h14m-6-6 6 6-6 6"/></svg>
+      </a>
+    </nav>
+    <div class="art-motion" aria-hidden="true">
+      <figure class="specimen">
+        <div class="imprint">
+          <div class="plate-origin">
+            <img class="specimen-print" alt="" width="1024" height="1536" src="orchid/wind-still.webp"
+              srcset="orchid/wind-still.webp 1024w, orchid/wind-still-hd.webp 1536w"
+              sizes="min(clamp(67svh, 127svh - 24vw, 88svh), 91vw, max(55vw, 51svh - 7vw, 36svh + 13vw))">
+            <video class="specimen-film" muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true">
+              <source data-src="orchid/wind-film-hd.mp4" type="video/mp4">
+              <source data-src="orchid/wind-film.mp4" type="video/mp4">
+            </video>
+            <img class="stem-extension" alt="" width="215" height="1560" src="orchid/stem-extension.webp">
+          </div>
+        </div>
+        <div class="reversal"></div>
+        <div class="toner"></div>
+      </figure>
+      <canvas class="drafting"></canvas>
+      <canvas class="tracking"></canvas>
+    </div>
+  </main>
+<script src="orchid/wind-rig.js"></script>
+<script src="orchid/glyph-measure.js"></script>
+<script src="orchid/dimensions.js"></script>
+<script src="orchid/tracker.js"></script>
+<script src="orchid/film.js"></script>
+</body>
 </html>
