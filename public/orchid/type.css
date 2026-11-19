@@ -223,6 +223,29 @@
 }
 .specimen-film { width: calc(100% * var(--film-width, 1.046875)); opacity: 0; }
 .specimen-film.is-ready { opacity: 1; }
+.play-motion {
+  position: absolute;
+  z-index: 2;
+  top: var(--name-top);
+  right: max(var(--margin), env(safe-area-inset-right, 0px));
+  padding: 6px 8px;
+  border: 1px solid currentColor;
+  border-radius: 0;
+  background: #f6f6f2;
+  color: #171816;
+  font: 400 11px/1.2 "SFMono-Regular", Consolas, monospace;
+  cursor: pointer;
+}
+.play-motion::before {
+  content: "";
+  display: inline-block;
+  margin-right: 6px;
+  border: solid transparent;
+  border-width: 4px 0 4px 6px;
+  border-left-color: currentColor;
+}
+.play-motion::after { content: ""; position: absolute; inset: -9px -2px; }
+.play-motion:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
 /* The lower stalk shares 24 rows with the 1024 × 1536 flower plate. */
 .stem-extension {
   position: absolute;

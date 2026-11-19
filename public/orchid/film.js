@@ -1,6 +1,13 @@
 (() => {
   const sheet = document.querySelector('main');
   const video = sheet.querySelector('.specimen-film');
+  const playButton = document.createElement('button');
+  playButton.type = 'button';
+  playButton.className = 'play-motion';
+  playButton.textContent = 'Play motion';
+  playButton.setAttribute('aria-label', 'Play orchid animation');
+  playButton.hidden = true;
+  sheet.append(playButton);
   const tracker = sheet.querySelector('.tracking');
   const registration = sheet.querySelector('.plate-origin');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -8,6 +15,7 @@
   const trackingFps = 12;
   const [hdSource, source] = video.querySelectorAll('source');
   let loading;
+  let playAttempt = 0;
   let lastTrackingFrame = -1;
   let layout, presentedAt = 0, callbackId = 0, manual = false;
   const nativeFrames = Boolean(video.requestVideoFrameCallback && video.cancelVideoFrameCallback);
@@ -63,10 +71,22 @@
     }
   }
   /**
-   * The printed first frame is already on the page. Attach the movie only
-   * when it will play, or when the export explicitly asks for a film frame.
+   * Leave playback in charge of fetching the movie. A phone that blocks
+   * autoplay can keep the printed frame until its owner presses Play.
    */
+  function setSources() {
+    if (source.hasAttribute('src')) return;
+    const displayPixels = registration.getBoundingClientRect().width * (window.devicePixelRatio || 1);
+    if (displayPixels > 1024 && !navigator.connection?.saveData) {
+      hdSource.src = hdSource.dataset.src;
+    }
+    source.src = source.dataset.src;
+    video.load();
+  }
+
+  /** Load a frame for export even when the film is paused. */
   function loadFilm() {
+    if (video.readyState >= 2) return Promise.resolve();
     if (loading) return loading;
     // oxlint-disable-next-line rayhanadev/no-promise-reject -- Failed decoding must reject the public ready and seek promises.
     loading = new Promise((resolve, reject) => {
@@ -80,26 +100,25 @@
       };
       function cleanup() {
         video.removeEventListener('loadeddata', loaded);
+        video.removeEventListener('canplay', loaded);
         video.removeEventListener('error', failed);
         source.removeEventListener('error', failed);
       }
       video.addEventListener('loadeddata', loaded);
+      video.addEventListener('canplay', loaded);
       video.addEventListener('error', failed);
       source.addEventListener('error', failed);
       video.preload = 'auto';
-      const displayPixels = registration.getBoundingClientRect().width * (window.devicePixelRatio || 1);
-      if (displayPixels > 1024 && !navigator.connection?.saveData) {
-        hdSource.src = hdSource.dataset.src;
-      }
-      source.src = source.dataset.src;
-      video.load();
+      setSources();
     });
     return loading;
   }
 
   function playback() {
+    const attempt = ++playAttempt;
     cancelFrame();
     if (manual || document.hidden || reduced.matches) {
+      playButton.hidden = true;
       video.pause();
       if (reduced.matches && !manual) {
         video.classList.remove('is-ready');
@@ -108,16 +127,24 @@
       }
       return;
     }
-    // oxlint-disable-next-line rayhanadev/no-promise-catch -- Keep the printed frame visible if media loading or autoplay fails.
-    loadFilm().then(() => {
-      if (!manual && !document.hidden && !reduced.matches) {
-        video.classList.add('is-ready');
-        return video.play().then(requestFrame);
+    setSources();
+    // Start inside the click event. Safari can withhold loadeddata until play()
+    // and a later promise callback can lose the user's activation.
+    // oxlint-disable-next-line rayhanadev/no-promise-catch -- Safari uses NotAllowedError to request a user gesture.
+    video.play().then(() => {
+      if (attempt !== playAttempt || manual) return;
+      playButton.hidden = true;
+      video.classList.add('is-ready');
+      requestFrame();
+    }, error => {
+      if (attempt === playAttempt && !manual && error.name === 'NotAllowedError') {
+        playButton.hidden = false;
       }
-    }).catch(() => draw(video.currentTime));
+    });
   }
   async function seek(seconds) {
     manual=true;
+    playButton.hidden=true;
     cancelFrame(); video.pause();
     await loadFilm();
     video.classList.add('is-ready');
@@ -143,6 +170,7 @@
   };
   register();
   new ResizeObserver(register).observe(sheet);
+  playButton.addEventListener('click', playback);
   video.addEventListener('playing', requestFrame);
   reduced.addEventListener('change',playback);
   document.addEventListener('visibilitychange',playback);

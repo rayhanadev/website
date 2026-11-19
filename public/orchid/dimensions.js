@@ -71,10 +71,12 @@ function registerMeasurements() {
   const cellSize = unit * scale;
   const gridX = ox + 250 * scale;
   const gridY = oy + 64 * scale;
-  const topRow = Math.min(-10, Math.floor((topEdge - 64) / unit) - 1);
-  const lastRow = Math.max(35, Math.ceil((crop - 64) / unit) + 2);
+  // On iOS the ink layer also covers the paper behind the browser controls.
+  const bleed = sheetBox.top - plate.querySelector('.reversal').getBoundingClientRect().top;
+  const topRow = Math.min(-10, Math.floor((-bleed - gridY) / cellSize) - 1);
+  const lastRow = Math.max(35, Math.ceil((h + bleed - gridY) / cellSize) + 2);
   const gridPoint = (column, row) =>
-    (gridX + column * cellSize).toFixed(2) + ' ' + (gridY + row * cellSize).toFixed(2);
+    (gridX + column * cellSize).toFixed(2) + ' ' + (gridY + bleed + row * cellSize).toFixed(2);
 
   // Each row gives the first dark column. The paper cut and reversed ink share this edge.
   const topSlope = Math.max(0, Math.min(1, (oy / h - .036) / .14));
@@ -97,7 +99,7 @@ function registerMeasurements() {
   }
   boundary.push(gridPoint(edgeColumn(lastRow), lastRow));
   const edge = 'M' + (w * 1.1) + ' ' + (-h * .1) + 'L' + boundary.join('L') +
-    'L' + (w * 1.1) + ' ' + (h * 1.15) + 'Z';
+    'L' + (w * 1.1) + ' ' + (h * 1.15 + 2 * bleed) + 'Z';
 
   /**
    * The even-odd fill adds the loose squares on paper and cuts the holes
